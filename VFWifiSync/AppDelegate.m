@@ -7,8 +7,12 @@
 //
 
 #import "AppDelegate.h"
+#import <Reachability.h>
 
 @interface AppDelegate ()
+{
+    Reachability *wifiReachability;
+}
 
 @end
 
@@ -17,6 +21,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    /* UI Appearance Configuration */
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
     
     [[UINavigationBar appearance] setTintColor:[UIColor blueColor]];
@@ -26,6 +31,12 @@
     UIFont *titleFont = [UIFont fontWithName:@"HelveticaNeue-CondensedBlack" size:21.0];
     
     [[UINavigationBar appearance] setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:titleColor, NSForegroundColorAttributeName, titleFont, NSFontAttributeName, nil]];
+    
+    /* MediaHome Wifi Sync Configuration */
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
+    wifiReachability = [Reachability reachabilityForLocalWiFi];
+    [wifiReachability startNotifier];
+    
     return YES;
 }
 
@@ -49,6 +60,28 @@
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+- (void) reachabilityChanged: (NSNotification *)note
+{
+    Reachability *curReach = [note object];
+    NSParameterAssert([curReach isKindOfClass:[Reachability class]]);
+    
+    NetworkStatus status = [curReach currentReachabilityStatus];
+    
+    switch (status) {
+        case NotReachable:
+            NSLog(@"wifi is not reachable.");
+            break;
+        case ReachableViaWiFi:
+            NSLog(@"reachableViaWiFi");
+            break;
+        case ReachableViaWWAN:
+            NSLog(@"ReachableViaWWAN");
+            break;
+        default:
+            break;
+    }
 }
 
 @end
